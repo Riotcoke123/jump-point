@@ -1,1 +1,65 @@
+<%- include('partials/header', { title: false }) %>
 
+<section class="intro">
+  <h1>Every show goes somewhere. This is where.</h1>
+  <p class="intro__sub">Browse <%= totalPages > 1 ? 'a couple hundred' : shows.length %> series and the fan case for exactly when each one turned. Disagree? Submit your own moment.</p>
+</section>
+
+<form class="filterbar" method="GET" action="/">
+  <input
+    class="filterbar__search"
+    type="text"
+    name="q"
+    placeholder="Search by title…"
+    value="<%= q %>"
+    autocomplete="off"
+  />
+  <select class="filterbar__select" name="genre">
+    <option value="">All genres</option>
+    <% genres.forEach(g => { %>
+      <option value="<%= g %>" <%= g === genre ? 'selected' : '' %>><%= g %></option>
+    <% }) %>
+  </select>
+  <select class="filterbar__select" name="sort">
+    <option value="title" <%= sort === 'title' ? 'selected' : '' %>>A–Z</option>
+    <option value="year" <%= sort === 'year' ? 'selected' : '' %>>Newest first</option>
+    <option value="moments" <%= sort === 'moments' ? 'selected' : '' %>>Most-argued-over</option>
+  </select>
+  <button class="btn btn--ink" type="submit">Filter</button>
+  <% if (q || genre) { %>
+    <a class="filterbar__clear" href="/">Clear</a>
+  <% } %>
+</form>
+
+<% if (shows.length === 0) { %>
+  <p class="empty-state">No shows match that search. Try a different title or clear the filters.</p>
+<% } else { %>
+  <div class="show-grid">
+    <% shows.forEach(show => { %>
+      <a class="show-card" href="/shows/<%= show.slug %>">
+        <div class="show-card__top">
+          <span class="show-card__genre"><%= show.genre %></span>
+          <span class="show-card__moments"><%= show.moment_count %> argument<%= show.moment_count === 1 ? '' : 's' %></span>
+        </div>
+        <h2 class="show-card__title"><%= show.title %></h2>
+        <p class="show-card__meta">
+          <%= show.network || 'Network unknown' %>
+          · <%= show.year_started || '—' %><%= show.year_ended ? '–' + show.year_ended : (show.year_started ? '–present' : '') %>
+        </p>
+      </a>
+    <% }) %>
+  </div>
+
+  <% if (totalPages > 1) { %>
+    <nav class="pagination">
+      <% for (let p = 1; p <= totalPages; p++) { %>
+        <a
+          class="pagination__link <%= p === page ? 'is-active' : '' %>"
+          href="/?q=<%= encodeURIComponent(q) %>&genre=<%= encodeURIComponent(genre) %>&sort=<%= sort %>&page=<%= p %>"
+        ><%= p %></a>
+      <% } %>
+    </nav>
+  <% } %>
+<% } %>
+
+<%- include('partials/footer') %>

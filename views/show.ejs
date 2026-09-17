@@ -1,0 +1,109 @@
+<%- include('partials/header', { title: show.title }) %>
+
+<a class="back-link" href="/">&larr; All shows</a>
+
+<article class="show-hero">
+  <p class="show-hero__genre"><%= show.genre %></p>
+  <h1 class="show-hero__title"><%= show.title %></h1>
+  <p class="show-hero__meta">
+    <%= show.network || 'Network unknown' %>
+    · <%= show.year_started || '—' %><%= show.year_ended ? '–' + show.year_ended : (show.year_started ? '–present' : '') %>
+  </p>
+
+  <% if (moments.length > 0) { %>
+    <% const top = moments[0]; %>
+    <div class="consensus">
+      <p class="consensus__label">Current consensus drop point</p>
+      <p class="consensus__value">
+        <% if (top.season || top.episode) { %>
+          Season <%= top.season || '?' %><% if (top.episode) { %>, Episode <%= top.episode %><% } %>
+        <% } else { %>
+          No episode pinned yet
+        <% } %>
+        <% if (top.episode_title) { %> — "<%= top.episode_title %>"<% } %>
+      </p>
+      <p class="consensus__votes"><%= top.upvotes - top.downvotes %> net votes from <%= moments.length %> submitted argument<%= moments.length === 1 ? '' : 's' %></p>
+    </div>
+  <% } else { %>
+    <div class="consensus consensus--empty">
+      <p class="consensus__label">No arguments submitted yet</p>
+      <p class="consensus__value">Be the first to name the episode.</p>
+    </div>
+  <% } %>
+</article>
+
+<section class="moments">
+  <h2 class="section-heading">Fan arguments (<%= moments.length %>)</h2>
+
+  <% if (moments.length === 0) { %>
+    <p class="empty-state">Nobody has made the case yet. Use the form below to start the record.</p>
+  <% } %>
+
+  <ul class="moment-list">
+    <% moments.forEach((m, i) => { %>
+      <li class="moment-card" id="moment-<%= m.id %>">
+        <div class="moment-card__votes">
+          <form method="POST" action="/moments/<%= m.id %>/vote">
+            <input type="hidden" name="direction" value="up" />
+            <button class="vote-btn vote-btn--up" type="submit" aria-label="Upvote this argument">&uarr;</button>
+          </form>
+          <span class="moment-card__score"><%= m.upvotes - m.downvotes %></span>
+          <form method="POST" action="/moments/<%= m.id %>/vote">
+            <input type="hidden" name="direction" value="down" />
+            <button class="vote-btn vote-btn--down" type="submit" aria-label="Downvote this argument">&darr;</button>
+          </form>
+        </div>
+        <div class="moment-card__body">
+          <p class="moment-card__ep">
+            <% if (m.season || m.episode) { %>
+              S<%= m.season || '?' %><% if (m.episode) { %>E<%= m.episode %><% } %>
+            <% } else { %>
+              Unpinned
+            <% } %>
+            <% if (m.episode_title) { %> · "<%= m.episode_title %>"<% } %>
+            <% if (i === 0 && moments.length > 1) { %><span class="moment-card__badge">Top argument</span><% } %>
+          </p>
+          <p class="moment-card__argument"><%= m.argument %></p>
+          <p class="moment-card__by">— <%= m.submitted_by %></p>
+        </div>
+      </li>
+    <% }) %>
+  </ul>
+</section>
+
+<section class="submit-form" id="submit">
+  <h2 class="section-heading">Make your case</h2>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <p class="form-error"><%= error %></p>
+  <% } %>
+  <% if (submitted) { %>
+    <p class="form-success">Your argument is on the record.</p>
+  <% } %>
+  <form method="POST" action="/shows/<%= show.slug %>/moments">
+    <div class="form-row form-row--split">
+      <label class="field">
+        <span>Season</span>
+        <input type="text" name="season" placeholder="e.g. 5" />
+      </label>
+      <label class="field">
+        <span>Episode</span>
+        <input type="text" name="episode" placeholder="e.g. 12" />
+      </label>
+      <label class="field">
+        <span>Episode title (optional)</span>
+        <input type="text" name="episode_title" placeholder="e.g. Hollywood" />
+      </label>
+    </div>
+    <label class="field">
+      <span>Your case</span>
+      <textarea name="argument" rows="4" required placeholder="Explain what happened here and why it's the turning point…"></textarea>
+    </label>
+    <label class="field">
+      <span>Your name (optional)</span>
+      <input type="text" name="submitted_by" placeholder="Anonymous" maxlength="60" />
+    </label>
+    <button class="btn btn--accent" type="submit">Submit argument</button>
+  </form>
+</section>
+
+<%- include('partials/footer') %>
